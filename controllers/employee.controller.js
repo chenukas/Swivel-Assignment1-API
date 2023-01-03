@@ -1,76 +1,72 @@
 const { HttpStatus } = require('../types/http');
-const { employeeDataValidation } = require('../middleware/validations');
 const EmployeeService = require('../services/employee.service');
+
+/**
+ * Client error handler
+ * @param {*} res Response object
+ * @param {*} error Error message to be returned
+ */
+const handleBadRequest = (res, error) => res.status(HttpStatus.BAD_REQUEST)
+    .json({
+        success: false, error
+    });
+
+/**
+* Success scenario handler
+* @param {*} res Response object
+* @param {*} data Data object
+*/
+const handleSuccessResponse = (res, data, message = '') => res.status(HttpStatus.OK)
+    .json({
+        success: true, data, message
+    });
+
+/**
+* Handle server side errors
+* @param {*} res Response object
+* @param {*} error Error message
+*/
+const handleError = (res, error) => res.status(HttpStatus.INTERNAL_SERVER_ERROR)
+    .json({
+        success: false, error
+    });
 
 const getAllEmployees = async (req, res) => {
     try {
         const result = await EmployeeService.getAllEmployees();
 
         if (result.length == 0) {
-            return res.status(HttpStatus.NOT_FOUND).json({
-                message: 'Employees not found'
-            });
+            return handleSuccessResponse(res, [], 'Employees not found');
         }
 
-        return res.status(HttpStatus.OK).json({
-            data: result
-        });
+        return handleSuccessResponse(res, result);
     } catch (err) {
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            error: err.message,
-        });
+        return handleError(res, err.message);
     }
 };
 
 const createNewEmployee = async (req, res) => {
-    const { error } = employeeDataValidation(req.body);
-
-    if (error) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-            error: error.details[0].message
-        });
-    }
-
     try {
         const result = await EmployeeService.createNewEmployee(req.body);
 
-        return res.status(HttpStatus.CREATED).json({
-            data: result
-        });
-
+        return handleSuccessResponse(res, result);
     } catch (err) {
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            error: err.message,
-        });
+        return handleError(res, err.message);
     }
 };
 
 const editAnEmployee = async (req, res) => {
-    const { error } = employeeDataValidation(req.body);
-
-    if (error) {
-        return res.status(HttpStatus.BAD_REQUEST).json({
-            error: error.details[0].message
-        });
-    }
-
     try {
         const result = await EmployeeService.editAnEmployee(req.params.id, req.body);
 
         if (result == -1) {
-            return res.status(HttpStatus.BAD_REQUEST).json({
-                error: 'Email already exist'
-            });
+            return handleBadRequest(res, 'Email already exist');
         }
 
-        return res.status(HttpStatus.OK).json({
-            data: result
-        });
+        return handleSuccessResponse(res, result);
 
     } catch (err) {
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            error: err.message,
-        });
+        return handleError(res, err.message);
     }
 
 };
@@ -79,17 +75,16 @@ const deleteAnEmployee = async (req, res) => {
     try {
         const result = await EmployeeService.deleteAnEmployee(req.params.id);
 
-        return res.status(HttpStatus.OK).json({
-            data: result
-        });
+        return handleSuccessResponse(res, result);
     } catch (err) {
-        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-            error: err.message,
-        });
+        return handleError(res, err.message);
     }
 };
 
 module.exports = {
+    handleBadRequest,
+    handleSuccessResponse,
+    handleError,
     getAllEmployees,
     createNewEmployee,
     editAnEmployee,
