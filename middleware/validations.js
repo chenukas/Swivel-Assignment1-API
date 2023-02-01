@@ -1,5 +1,6 @@
 const Joi = require('joi');
-const { handleBadRequest } = require('../controllers/employee.controller')
+const { handleBadRequest } = require('../controllers/employee.controller');
+const logger = require('../utils');
 
 function employeeDataValidation(req, res, next) {
     const schema = Joi.object({
@@ -12,6 +13,7 @@ function employeeDataValidation(req, res, next) {
 
     const { error } = schema.validate(req.body);
     if (error) {
+        logger.error(`Employee data validation error: ${error.details[0].message}`)
         return handleBadRequest(res, error.details[0].message);
     } else {
         next()

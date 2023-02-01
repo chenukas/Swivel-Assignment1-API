@@ -2,6 +2,8 @@ const express = require('express');
 const middleware = require('./middleware');
 const connectDatabase = require('./config/database');
 const routes = require('./routes');
+const config = require('./config');
+const logger = require('./utils')
 
 const app = express();
 
@@ -9,10 +11,8 @@ middleware(app);
 
 routes(app);
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-    console.log(`Server is running on ${PORT}`)
+app.listen(config.PORT, () => {
+    logger.info(`Server is running on ${config.PORT}`)
 })
 
 connectDatabase();
